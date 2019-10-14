@@ -7,6 +7,7 @@ use App\Http\Requests;
 use Session;
 use App\Survey;
 use App\ResultGlobal;
+use App\ResultRegion;
 use App\Region;
 use App\Indicator;
 use Maatwebsite\Excel\Facades\Excel;
@@ -54,16 +55,96 @@ class ImportCsvController extends Controller
     {
         $path = $request->file('file')->getRealPath();
         $data = Excel::load($path, function($reader) {})->get()->toArray();
-        
+        $surveys = $request->id_survey;
+        $group = $request->group;
+        $year = $request->year;
+
+        // echo $surveys . " " . $group . " " . $year . "<br>";
         $csv_header_fields = [];
         foreach ($data[0] as $key => $value) {
             $csv_header_fields[] = $key;
         }
+        //print_r($csv_header_fields);
+        $indicatorIds = array();
+        for ($i = 0; $i < sizeof($csv_header_fields); $i++) {
+            if ($i == 0) {
+                $indicatorIds[$csv_header_fields[$i]] = $csv_header_fields[$i];
+            }
+            else {
+                $Indicator = Indicator::where('title', $csv_header_fields[$i])->first();
+                echo $Indicator;
+                if(!isset($Indicator)) {
+                    $Indicator = new Indicator();
+                    $Indicator->title = $csv_header_fields[$i];
+                    //$Indicator->save();
+                    echo $Indicator->id;
+                    $indicatorIds[$Indicator->title] = $Indicator->id;
+                }
+                else {
+                    $indicatorIds[$Indicator->title] = $Indicator->id;
+                }
+            }
+        }
+        
         print_r($csv_header_fields);
         $csv_data = array_slice($data, 0, 1000);
-        foreach ($csv_data as $row) {
-            echo "<br>";
-            print_r($row);
+        echo "<br>";
+        //print_r($csv_data[0]);
+        
+        for ($i = 1; $i < sizeof($csv_header_fields); $i++) {
+            $resultGlobal = ResultGlobal::where('id_indicator', $indicatorIds[$csv_header_fields[$i]])
+            ->where('ensemble',$csv_data[0][$csv_header_fields[$i]])
+            ->where('urbain',$csv_data[1][$csv_header_fields[$i]])
+            ->where('rural',$csv_data[2][$csv_header_fields[$i]])
+            ->where('year',$year)
+            ->first();
+            if(!isset($resultGlobal)) {
+                $resultGlobal = new resultGlobal();
+                $resultGlobal->id_indicator = $indicatorIds[$csv_header_fields[$i]];
+                $resultGlobal->ensemble = $csv_data[0][$csv_header_fields[$i]];
+                $resultGlobal->urbain = $csv_data[1][$csv_header_fields[$i]];
+                $resultGlobal->rural = $csv_data[2][$csv_header_fields[$i]];
+                $resultGlobal->year = $year;
+                //$resultGlobal->save();
+                echo $csv_header_fields[$i] . " : " . $resultGlobal->id . "<br>";
+            }
+        }
+        //echo "<br>" . sizeof($csv_data);
+        for ($i=3; $i < sizeof($csv_data); $i++) {
+            $name = $csv_data[$i][$csv_header_fields[0]];
+            echo "region : " . $name . "<br>";
+            $reg = Region::where('name', $name)->first();
+            $region = $reg->id;
+            //echo $reg;
+            for ($j=1; $j < sizeof($csv_header_fields); $j++) {
+                $resultRegion = ResultRegion::where('id_region', $region)
+                ->where('id_indicator', $indicatorIds[$csv_header_fields[$j]])
+                ->where('value',$csv_data[$i][$csv_header_fields[$j]])
+                ->where('year',$year)
+                ->first();
+                if(!isset($resultRegion)) {
+                    $resultRegion = new resultRegion();
+                    $resultRegion->id_region = $region;
+                    $resultRegion->id_indicator = $indicatorIds[$csv_header_fields[$j]];
+                    $resultRegion->value = $csv_data[$i][$csv_header_fields[$j]];    
+                    $resultRegion->year = $year;
+                    //$resultRegion->save();
+                    echo $csv_header_fields[$j] . " : " . $resultRegion->id . "<br>";
+                }
+            }
+        }
+    }
+
+    private function seedGlobal($row) {
+        $resultGlobal = ResultGlobal::where('title', $csv_header_fields[$i])->first();
+        echo $resultGlobal;
+        if(!isset($resultGlobal)) {
+            $resultGlobal = new ResultGlobal();
+            $resultGlobal->title = $row[$i];
+            
+        }
+        else {
+            
         }
     }
 

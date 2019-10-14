@@ -62,7 +62,7 @@
                     <div class="col-sm-10">
                         <select id="group" class="custom-select form-control" name="group" >
                             @foreach($groups as $group)
-                               <option value="group">{{ $group}} </option>
+                               <option value="{{ $group }}">{{ $group}} </option>
                             @endforeach
                         </select>
                     </div>
@@ -75,7 +75,7 @@
                     <div class="col-sm-10">
                         <select id="year" class="custom-select form-control" name="year" >             
                             @foreach($years as $year)
-                               <option value="year">{{ $year }} </option>
+                               <option value="{{ $year }}">{{ $year }} </option>
                             @endforeach
                         </select>
                     </div>

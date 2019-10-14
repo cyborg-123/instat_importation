@@ -71,18 +71,9 @@ class ImportCsvController extends Controller
                 $indicatorIds[$csv_header_fields[$i]] = $csv_header_fields[$i];
             }
             else {
-                $Indicator = Indicator::where('title', $csv_header_fields[$i])->first();
-                echo $Indicator;
-                if(!isset($Indicator)) {
-                    $Indicator = new Indicator();
-                    $Indicator->title = $csv_header_fields[$i];
-                    //$Indicator->save();
-                    echo $Indicator->id;
-                    $indicatorIds[$Indicator->title] = $Indicator->id;
-                }
-                else {
-                    $indicatorIds[$Indicator->title] = $Indicator->id;
-                }
+                $Indicator = Indicator::firstOrCreate(['title' => $csv_header_fields[$i], 'id_survey' => $surveys]);
+                echo $Indicator;   
+                $indicatorIds[$Indicator->title] = $Indicator->id;
             }
         }
         
@@ -92,22 +83,14 @@ class ImportCsvController extends Controller
         //print_r($csv_data[0]);
         
         for ($i = 1; $i < sizeof($csv_header_fields); $i++) {
-            $resultGlobal = ResultGlobal::where('id_indicator', $indicatorIds[$csv_header_fields[$i]])
-            ->where('ensemble',$csv_data[0][$csv_header_fields[$i]])
-            ->where('urbain',$csv_data[1][$csv_header_fields[$i]])
-            ->where('rural',$csv_data[2][$csv_header_fields[$i]])
-            ->where('year',$year)
-            ->first();
-            if(!isset($resultGlobal)) {
-                $resultGlobal = new resultGlobal();
-                $resultGlobal->id_indicator = $indicatorIds[$csv_header_fields[$i]];
-                $resultGlobal->ensemble = $csv_data[0][$csv_header_fields[$i]];
-                $resultGlobal->urbain = $csv_data[1][$csv_header_fields[$i]];
-                $resultGlobal->rural = $csv_data[2][$csv_header_fields[$i]];
-                $resultGlobal->year = $year;
-                //$resultGlobal->save();
-                echo $csv_header_fields[$i] . " : " . $resultGlobal->id . "<br>";
-            }
+            $resultGlobal = ResultGlobal::firstOrCreate([
+                'id_indicator' => $indicatorIds[$csv_header_fields[$i]],
+                'ensemble' => str_replace(",",".",$csv_data[0][$csv_header_fields[$i]]), 
+                'urbain' => str_replace(",",".",$csv_data[1][$csv_header_fields[$i]]), 
+                'rural' => str_replace(",",".",$csv_data[2][$csv_header_fields[$i]]), 
+                'year' => $year
+            ]);  
+            echo $csv_header_fields[$i] . " : " . $resultGlobal->id . "<br>";
         }
         //echo "<br>" . sizeof($csv_data);
         for ($i=3; $i < sizeof($csv_data); $i++) {
@@ -115,36 +98,16 @@ class ImportCsvController extends Controller
             echo "region : " . $name . "<br>";
             $reg = Region::where('name', $name)->first();
             $region = $reg->id;
-            //echo $reg;
+            echo $region;
             for ($j=1; $j < sizeof($csv_header_fields); $j++) {
-                $resultRegion = ResultRegion::where('id_region', $region)
-                ->where('id_indicator', $indicatorIds[$csv_header_fields[$j]])
-                ->where('value',$csv_data[$i][$csv_header_fields[$j]])
-                ->where('year',$year)
-                ->first();
-                if(!isset($resultRegion)) {
-                    $resultRegion = new resultRegion();
-                    $resultRegion->id_region = $region;
-                    $resultRegion->id_indicator = $indicatorIds[$csv_header_fields[$j]];
-                    $resultRegion->value = $csv_data[$i][$csv_header_fields[$j]];    
-                    $resultRegion->year = $year;
-                    //$resultRegion->save();
+                $resultRegion = ResultRegion::firstOrCreate([
+                    'id_region' => $region,
+                    'id_indicator' => $indicatorIds[$csv_header_fields[$j]],
+                    'value' => str_replace(",",".",$csv_data[$i][$csv_header_fields[$j]]),
+                    'year' => $year
+                ]);
                     echo $csv_header_fields[$j] . " : " . $resultRegion->id . "<br>";
-                }
             }
-        }
-    }
-
-    private function seedGlobal($row) {
-        $resultGlobal = ResultGlobal::where('title', $csv_header_fields[$i])->first();
-        echo $resultGlobal;
-        if(!isset($resultGlobal)) {
-            $resultGlobal = new ResultGlobal();
-            $resultGlobal->title = $row[$i];
-            
-        }
-        else {
-            
         }
     }
 

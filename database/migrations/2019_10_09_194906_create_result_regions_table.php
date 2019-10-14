@@ -15,7 +15,12 @@ class CreateResultRegionsTable extends Migration
     {
         Schema::create('result_regions', function (Blueprint $table) {
             $table->increments('id');
-            $table->string('name')->unique();
+            $table->integer('id_region')->unsigned();
+            $table->foreign('id_region')->references('id')->on('regions')->onDelete('cascade');
+            $table->integer('id_indicator')->unsigned();
+            $table->foreign('id_indicator')->references('id')->on('indicators')->onDelete('cascade');
+            $table->decimal('value',6,2);
+             $table->string('year');
             $table->timestamps();
         });
     }

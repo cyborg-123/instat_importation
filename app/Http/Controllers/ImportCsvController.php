@@ -50,9 +50,21 @@ class ImportCsvController extends Controller
      *
      * @return \Illuminate\Http\Response
      */
-    public function import()
+    public function import(Request $request)
     {
-        //
+        $path = $request->file('file')->getRealPath();
+        $data = Excel::load($path, function($reader) {})->get()->toArray();
+        
+        $csv_header_fields = [];
+        foreach ($data[0] as $key => $value) {
+            $csv_header_fields[] = $key;
+        }
+        print_r($csv_header_fields);
+        $csv_data = array_slice($data, 0, 1000);
+        foreach ($csv_data as $row) {
+            echo "<br>";
+            print_r($row);
+        }
     }
 
     public function create()

@@ -30,7 +30,7 @@ class RegionsTableSeeder extends Seeder
         	],
 
         	[
-        		'name'=>'AMORONY MANIA'
+        		'name'=>'AMORON\'I MANIA'
         	],
         	[
         		'name'=>'VATOVAVY FITOVINANY'
@@ -39,12 +39,11 @@ class RegionsTableSeeder extends Seeder
         		'name'=>'IHOROMBE'
         	],
         	[
-        		'name'=>'ANTSIMO ATSINANANA'
+        		'name'=>'ATSIMO ATSINANANA'
         	],
         	[
         		'name'=>'ATSINANANA'
         	],
-
 
             [
         		'name'=>'ANALANJIROFO'

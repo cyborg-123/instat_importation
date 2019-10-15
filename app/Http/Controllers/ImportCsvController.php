@@ -17,6 +17,15 @@ use DB;
 class ImportCsvController extends Controller
 {
     /**
+     * Create a new controller instance.
+     *
+     * @return void
+     */
+    public function __construct()
+    {
+        $this->middleware('auth');
+    }
+    /**
      * Display a listing of the resource.
      *
      * @return \Illuminate\Http\Response
@@ -53,18 +62,19 @@ class ImportCsvController extends Controller
      */
     public function import(Request $request)
     {
+        $timestart=microtime(true);
+
         $path = $request->file('file')->getRealPath();
         $data = Excel::load($path, function($reader) {})->get()->toArray();
         $surveys = $request->id_survey;
         $group = $request->group;
         $year = $request->year;
 
-        // echo $surveys . " " . $group . " " . $year . "<br>";
         $csv_header_fields = [];
         foreach ($data[0] as $key => $value) {
             $csv_header_fields[] = $key;
         }
-        //print_r($csv_header_fields);
+
         $indicatorIds = array();
         for ($i = 0; $i < sizeof($csv_header_fields); $i++) {
             if ($i == 0) {
@@ -72,16 +82,12 @@ class ImportCsvController extends Controller
             }
             else {
                 $Indicator = Indicator::firstOrCreate(['title' => $csv_header_fields[$i], 'id_survey' => $surveys]);
-                echo $Indicator;   
                 $indicatorIds[$Indicator->title] = $Indicator->id;
             }
         }
         
-        print_r($csv_header_fields);
         $csv_data = array_slice($data, 0, 1000);
-        echo "<br>";
-        //print_r($csv_data[0]);
-        
+                
         for ($i = 1; $i < sizeof($csv_header_fields); $i++) {
             $resultGlobal = ResultGlobal::firstOrCreate([
                 'id_indicator' => $indicatorIds[$csv_header_fields[$i]],
@@ -90,15 +96,15 @@ class ImportCsvController extends Controller
                 'rural' => str_replace(",",".",$csv_data[2][$csv_header_fields[$i]]), 
                 'year' => $year
             ]);  
-            echo $csv_header_fields[$i] . " : " . $resultGlobal->id . "<br>";
+            
         }
-        //echo "<br>" . sizeof($csv_data);
+        
         for ($i=3; $i < sizeof($csv_data); $i++) {
             $name = $csv_data[$i][$csv_header_fields[0]];
-            echo "region : " . $name . "<br>";
+            
             $reg = Region::where('name', $name)->first();
             $region = $reg->id;
-            echo $region;
+            
             for ($j=1; $j < sizeof($csv_header_fields); $j++) {
                 $resultRegion = ResultRegion::firstOrCreate([
                     'id_region' => $region,
@@ -106,9 +112,15 @@ class ImportCsvController extends Controller
                     'value' => str_replace(",",".",$csv_data[$i][$csv_header_fields[$j]]),
                     'year' => $year
                 ]);
-                    echo $csv_header_fields[$j] . " : " . $resultRegion->id . "<br>";
+                
             }
         }
+
+        $timeend=microtime(true);
+        $time=$timeend-$timestart;
+        $page_load_time = number_format($time, 3);
+
+        echo "<p class='text-primary' style='font-weight: bold'>Importation effectuée avec succès! (" . (sizeof($csv_data) + 1) . " lignes au total, la requête a pris " . $page_load_time . " secondes.)</p>";
     }
 
     public function create()

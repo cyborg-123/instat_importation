@@ -15,7 +15,7 @@ class CreateIndicatorsTable extends Migration
     {
         Schema::create('indicators', function (Blueprint $table) {
             $table->increments('id');
-            $table->string('title')->unique();
+            $table->string('title');
             $table->string('alias_title',255)->nullable();
             $table->integer('id_survey')->unsigned();
             $table->foreign('id_survey')->references('id')->on('surveys')->onDelete('cascade');

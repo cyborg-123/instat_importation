@@ -64,6 +64,15 @@ If you discover a security vulnerability within Laravel, please send an e-mail t
 
 The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
 
-## Code
+## Commandes 
 
+php composer.phar install
 php artisan migrate:refresh --seed
+php artisan serve
+
+## Fichiers modifiés
+
+-> app/Http/Controllers/ImportCsvController.php
+-> database/migrations/2019_10_09_194846_create_result_regions_table.php (ajout des colonnes id_region, id_indicateur, value, et year et suppréssion du colonne name)
+-> database/seeds/RegionsTableSeeder.php (rectification des noms de région)
+-> resources/views/import/importfile.blade.php (ajout d'une barre de chargement et d'une requette ajax pour l'envoi des données du formulaire au serveur pour l'importation sans rafraîchir la page et en affichant les résultats)
